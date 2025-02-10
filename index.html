@@ -1,238 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Land Measurement Calculator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+const express = require('express');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const Stripe = require('stripe');
+const cors = require('cors');
 
-        body {
-            background: #f5f7fa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: auto;
-            padding: 20px;
-        }
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-        .container {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
+// Initialize Stripe
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-        h1 {
-            color: #2a6b4d;
-            margin-bottom: 20px;
-        }
+app.use(cors());
+app.use(bodyParser.json());
 
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
+// Endpoint to create a Stripe Checkout session
+app.post('/api/create-checkout-session', async (req, res) => {
+    const { items } = req.body;
 
-        label {
-            font-weight: bold;
-            color: #333;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        #calculate {
-            background: #28a745;
-            color: white;
-        }
-
-        #reset {
-            background: #dc3545;
-            color: white;
-        }
-
-        button:hover {
-            opacity: 0.8;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #eef5ee;
-            border-radius: 5px;
-            text-align: left;
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            margin: 5px 0;
-        }
-
-        .result-label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .result-value {
-            color: #2a6b4d;
-        }
-
-        .seo-content {
-            max-width: 800px;
-            margin-top: 30px;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .seo-content h2 {
-            color: #2a6b4d;
-            margin-bottom: 15px;
-        }
-
-        .seo-content p {
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>Land Measurement Calculator</h1>
-        
-        <div class="input-group">
-            <label for="shatak">Enter Land Size (Shatak):</label>
-            <input type="number" id="shatak" placeholder="Enter Shatak" min="1">
-        </div>
-
-        <div class="buttons">
-            <button id="calculate">Calculate</button>
-            <button id="reset">Reset</button>
-        </div>
-
-        <div class="result-box">
-            <div class="result-item">
-                <span class="result-label">Length:</span>
-                <span class="result-value" id="length">--</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Width:</span>
-                <span class="result-value" id="width">--</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Total Area (sq ft):</span>
-                <span class="result-value" id="area">--</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Total Katha:</span>
-                <span class="result-value" id="katha">--</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- SEO Content Section -->
-    <div class="seo-content">
-        <h2>SEO Strategy for Land Measurement Calculator</h2>
-        <p>To rank your Land Measurement Calculator website at the top of Google search results, you need a strong SEO strategy that covers On-Page SEO, Technical SEO, and Off-Page SEO.</p>
-        
-        <p>Start with thorough keyword research to identify high-traffic keywords related to land measurement, such as "Land Measurement Calculator," "Convert Shatak to Square Feet," "Property Measurement Tool," and "Real Estate Land Area Calculation." Incorporate both primary and secondary keywords naturally throughout your content, including titles, meta descriptions, headings, and body text.</p>
-
-        <p>Ensure that the title tag is compelling and includes the main keyword, keeping it under 60 characters for better visibility. The meta description should be engaging, under 160 characters, and should include relevant keywords to improve click-through rates. The URL structure should be short, descriptive, and include the target keyword for better indexing by search engines.</p>
-
-        <p>Create high-quality, long-form content that provides value to users, explaining land measurement methods, conversion formulas, and practical use cases. Use structured heading tags such as H1, H2, and H3 to organize the content, making it easier for both users and search engines to understand.</p>
-
-        <p>Optimize images by using descriptive filenames and alt text while ensuring they are compressed to improve page loading speed. Implement schema markup using structured data to enhance search result visibility and improve rankings in Google’s rich results.</p>
-
-        <p>Technical SEO is essential for ensuring that search engines can crawl and index your site efficiently. Improve page speed by optimizing images, using a lightweight theme, and enabling browser caching. Ensure that your website is mobile-friendly and fully responsive across all devices. Use an SSL certificate to secure your site and improve rankings.</p>
-
-        <p>Off-Page SEO focuses on building high-quality backlinks from authoritative websites. Engage in guest posting, forum discussions, and local business listings to increase your site’s authority. Share content on social media platforms and encourage user engagement to drive traffic.</p>
-
-        <p>Regularly update the content with fresh information and keep an eye on Google Search Console for indexing issues. Submit your sitemap to Google and Bing for faster indexing and ensure that all internal links are properly structured to maintain link equity.</p>
-
-        <p>Use analytics tools like Google Analytics and Google Search Console to monitor traffic, user behavior, and rankings. Optimize your site based on performance data and improve content accordingly.</p>
-
-        <p>By following this comprehensive SEO strategy, your Land Measurement Calculator website can achieve higher rankings in search results, attract more organic traffic, and increase user engagement.</p>
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const shatakInput = document.getElementById("shatak");
-            const calculateBtn = document.getElementById("calculate");
-            const resetBtn = document.getElementById("reset");
-
-            const lengthEl = document.getElementById("length");
-            const widthEl = document.getElementById("width");
-            const areaEl = document.getElementById("area");
-            const kathaEl = document.getElementById("katha");
-
-            calculateBtn.addEventListener("click", function() {
-                const shatak = parseFloat(shatakInput.value);
-
-                if (isNaN(shatak) || shatak <= 0) {
-                    alert("Please enter a valid number for Shatak!");
-                    return;
-                }
-
-                const sqftPerShatak = 435.6;
-                const kathaPerSqft = 1 / 720;
-
-                const totalSqft = shatak * sqftPerShatak;
-                const side = Math.sqrt(totalSqft);
-                const totalKatha = totalSqft * kathaPerSqft;
-
-                lengthEl.textContent = side.toFixed(2) + " ft";
-                widthEl.textContent = side.toFixed(2) + " ft";
-                areaEl.textContent = totalSqft.toFixed(2) + " sq ft";
-                kathaEl.textContent = totalKatha.toFixed(2);
-            });
-
-            resetBtn.addEventListener("click", function() {
-                shatakInput.value = "";
-                lengthEl.textContent = "--";
-                widthEl.textContent = "--";
-                areaEl.textContent = "--";
-                kathaEl.textContent = "--";
-            });
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: items,
+            mode: 'payment',
+            success_url: `${req.headers.origin}/success`,
+            cancel_url: `${req.headers.origin}/cancel`,
         });
-    </script>
+        res.json({ id: session.id });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-</body>
-</html>
+// Endpoint for text-to-image generation (mock implementation)
+app.post('/api/text-to-image', async (req, res) => {
+    const { text } = req.body;
+
+    // Here you would implement your text-to-image generation logic
+    // For demonstration, we will return a placeholder image URL
+    const imageUrl = `https://via.placeholder.com/800x400.png?text=${encodeURIComponent(text)}`;
+    res.json({ imageUrl });
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
